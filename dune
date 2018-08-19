@@ -1,4 +1,23 @@
+(library
+  (name service_types)
+  (modules service_types)
+  (libraries ocaml-protoc)
+)
+
+(library
+  (name service_pb)
+  (modules service_pb)
+  (libraries service_types ocaml-protoc)
+)
+
 (executable
   (name srv)
-  (libraries lwt cohttp cohttp-lwt-unix ocaml-protoc)
+  (modules srv)
+  (libraries service_types service_pb lwt cohttp cohttp-lwt-unix ocaml-protoc)
+)
+
+(executable
+  (name client)
+  (modules client)
+  (libraries service_types service_pb lwt cohttp cohttp-lwt-unix ocaml-protoc)
 )

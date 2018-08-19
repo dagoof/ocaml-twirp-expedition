@@ -41,6 +41,9 @@ B /Users/peter/.opam/4.05.0/lib/uri
 B /Users/peter/.opam/4.05.0/lib/uri/services
 B /Users/peter/.opam/4.05.0/lib/x509
 B /Users/peter/.opam/4.05.0/lib/zarith
+B _build/default/.client.eobjs
+B _build/default/.service_pb.objs
+B _build/default/.service_types.objs
 B _build/default/.srv.eobjs
 S /Users/peter/.opam/4.05.0/lib/asn1-combinators
 S /Users/peter/.opam/4.05.0/lib/astring
@@ -86,4 +89,4 @@ S /Users/peter/.opam/4.05.0/lib/uri/services
 S /Users/peter/.opam/4.05.0/lib/x509
 S /Users/peter/.opam/4.05.0/lib/zarith
 S .
-FLG -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs
+FLG -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs

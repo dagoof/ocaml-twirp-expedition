@@ -40,42 +40,64 @@ let do_protobuf_enc_dec url enc dec src =
 
 open Service_types
 
-let path_prefix = "/twirp/twirp.example.haberdasher.Haberdasher/"
+let path_prefix = "/twirp/twirp.example.haberdasher.Haberdasher"
 
-module Client = struct
-  type t = { host : string }
-
-  let create host =
-    { host }
-
-  (*
-  let make_hat2 {host} (s:size) =
-    let encoder = Pbrt.Encoder.create () in
-    Service_pb.encode_size s encoder;
-
-    do_protobuf_request
-      (host ^ path_prefix ^ "MakeHat")
-      (Pbrt.Encoder.to_bytes encoder)
-    |> Lwt.map Pbrt.Decoder.of_bytes
-    |> Lwt.map Service_pb.decode_hat
-     *)
-
-  let make_hat {host} (s:size) =
-    Lwt_result.get_exn @@
-    do_protobuf_enc_dec
-      (host ^ path_prefix ^ "MakeHat")
-      Service_pb.encode_size
-      Service_pb.decode_hat
-      s
+module TwirpServer = struct
+  let make_hat (size:size) =
+    if size.inches <= 0l
+    then Lwt_result.fail @@ Twirp_Error "I cant make a hat that small"
+    else Lwt_result.return
+        { inches = size.inches
+        ; color  = "red"
+        ; name   = "football cap"
+        }
 end
 
+open Lwt
+open Cohttp
+open Cohttp_lwt_unix
 
-let () =
-  let c = Client.create "http://localhost:8080" in
-  let hat = Client.make_hat c (default_size ~inches:20l ()) in
-  let run = Lwt.map (fun h -> 
-      Printf.printf "%s, %s : %ld\n" h.name h.color h.inches
-    ) hat
+let handle_request decoder encoder handler body =
+  Cohttp_lwt.Body.to_string body >>= fun content ->
+  let result =
+    handler @@ decoder @@ Pbrt.Decoder.of_bytes content
   in
 
-  Lwt_main.run run
+  Lwt_result.get_exn @@
+  Lwt_result.map (fun r ->
+      let e = Pbrt.Encoder.create () in
+
+      encoder r e;
+      Pbrt.Encoder.to_bytes e
+    ) result
+
+
+let server =
+  let callback _conn req body =
+    match Uri.path @@ Request.uri req, Request.meth req with
+    | "/twirp/twirp.example.haberdasher.Haberdasher/MakeHat", `POST ->
+      let result =
+        handle_request
+          Service_pb.decode_size
+          Service_pb.encode_hat
+          TwirpServer.make_hat
+          body
+      in
+      result >>= fun content ->
+      Server.respond_string ~status:`OK ~body:content ()
+
+    | "/twirp/twirp.example.haberdasher.Haberdasher/MakeHat", _ ->
+      Server.respond_string ~status:`OK ~body:path_prefix ()
+
+    | path, meth ->
+      let uri = req |> Request.uri |> Uri.to_string in
+      let meth = meth |> Code.string_of_method in
+      let headers = req |> Request.headers |> Header.to_string in
+      body |> Cohttp_lwt.Body.to_string >|= (fun body ->
+          (Printf.sprintf "Uri: %s\nPath: %s\nMethod: %s\nHeaders\nHeaders: %s\nBody: %s"
+             uri path meth headers body))
+      >>= (fun body -> Server.respond_string ~status:`OK ~body ())
+  in
+  Server.create ~mode:(`TCP (`Port 8000)) (Server.make ~callback ())
+
+let () = ignore (Lwt_main.run server)
