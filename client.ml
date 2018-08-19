@@ -48,18 +48,6 @@ module Client = struct
   let create host =
     { host }
 
-  (*
-  let make_hat2 {host} (s:size) =
-    let encoder = Pbrt.Encoder.create () in
-    Service_pb.encode_size s encoder;
-
-    do_protobuf_request
-      (host ^ path_prefix ^ "MakeHat")
-      (Pbrt.Encoder.to_bytes encoder)
-    |> Lwt.map Pbrt.Decoder.of_bytes
-    |> Lwt.map Service_pb.decode_hat
-     *)
-
   let make_hat {host} (s:size) =
     Lwt_result.get_exn @@
     do_protobuf_enc_dec
@@ -72,7 +60,7 @@ end
 
 let () =
   let c = Client.create "http://localhost:8000" in
-  let hat = Client.make_hat c (default_size ~inches:320l ()) in
+  let hat = Client.make_hat c (default_size ~inches:200l ()) in
   let run = Lwt.map (fun h -> 
       Printf.printf "%s, %s : %ld\n" h.name h.color h.inches
     ) hat
