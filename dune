@@ -1,0 +1,4 @@
+(executable
+  (name srv)
+  (libraries lwt cohttp cohttp-lwt-unix ocaml-protoc)
+)
